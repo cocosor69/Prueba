@@ -36,7 +36,7 @@
                 <a class="nav-link" href="{{ url_for('stock') }}">Stock</a>
               </li>
             {% elif session['usuario'] and session['usuario']['role'] == 'Empleado' %}
-              {% set tipo = session['usuario_tipo'] if session['usuario_tipo'] is defined else '' %}
+              {% set tipo = session['usuario']['tipo'] %}
               {% if tipo == 'Cajero' %}
                 <li class="nav-item">
                   <a class="nav-link" href="{{ url_for('facturacion') }}">Facturación</a>

@@ -6,8 +6,33 @@
       <h3>Catálogo de Productos (Vendedor)</h3>
     </div>
     <div class="card-body">
-      <p>Aquí el vendedor puede consultar el catálogo, registrar ventas y ver clientes.</p>
-      <!-- Aquí puedes agregar tablas y formularios para ventas y catálogo -->
+      <form class="row g-3">
+        <div class="col-md-6">
+          <label for="producto" class="form-label">Producto</label>
+          <input type="text" class="form-control" id="producto" name="producto" placeholder="Buscar producto">
+        </div>
+        <div class="col-md-6">
+          <label for="categoria" class="form-label">Categoría</label>
+          <select class="form-select" id="categoria" name="categoria">
+            <option value="">Todas</option>
+            <option value="Motor">Motor</option>
+            <option value="Suspensión">Suspensión</option>
+            <option value="Frenos">Frenos</option>
+          </select>
+        </div>
+        <div class="col-md-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="oferta" name="oferta">
+            <label class="form-check-label" for="oferta">Solo productos en oferta</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-warning w-100">Buscar</button>
+        </div>
+      </form>
+      <hr>
+      <h5>Catálogo de productos</h5>
+      <div class="alert alert-info">Aquí se mostrarán los productos disponibles.</div>
     </div>
   </div>
 </div>

@@ -90,7 +90,8 @@ def login():
         usuario = User.query.filter_by(email=email).first()
         if usuario and check_password_hash(usuario.password, password):
             role = usuario.role.nombre
-            session['usuario'] = {'id': usuario.id, 'email': usuario.email, 'role': role}
+            tipo = usuario.tipoEmpleado.nombre if usuario.tipoEmpleado else ''
+            session['usuario'] = {'id': usuario.id, 'email': usuario.email, 'role': role, 'tipo': tipo}
             flash('Inicio de sesión exitoso', 'success')
             return redirect(url_for('dashboard'))
         else:

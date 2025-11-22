@@ -6,8 +6,33 @@
       <h3>Stock de Materiales (Almacenero)</h3>
     </div>
     <div class="card-body">
-      <p>Aquí el almacenero puede gestionar inventario, consultar cantidades y movimientos.</p>
-      <!-- Aquí puedes agregar tablas y formularios para inventario -->
+      <form class="row g-3">
+        <div class="col-md-6">
+          <label for="codigo" class="form-label">Código de accesorio</label>
+          <input type="text" class="form-control" id="codigo" name="codigo" placeholder="Buscar por código">
+        </div>
+        <div class="col-md-6">
+          <label for="sucursal" class="form-label">Sucursal</label>
+          <select class="form-select" id="sucursal" name="sucursal">
+            <option value="">Todas</option>
+            <option value="Sucursal Norte">Sucursal Norte</option>
+            <option value="Sucursal Sur">Sucursal Sur</option>
+            <option value="Sucursal Centro">Sucursal Centro</option>
+          </select>
+        </div>
+        <div class="col-md-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="bajo_stock" name="bajo_stock">
+            <label class="form-check-label" for="bajo_stock">Solo bajo stock (&lt; 10)</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-info w-100">Buscar</button>
+        </div>
+      </form>
+      <hr>
+      <h5>Inventario de accesorios</h5>
+      <div class="alert alert-info">Aquí se mostrarán los accesorios en stock.</div>
     </div>
   </div>
 </div>
