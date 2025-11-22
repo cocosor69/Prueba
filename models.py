@@ -20,3 +20,13 @@ class User(db.Model):
 
     role = db.relationship('Role', backref=db.backref('users', lazy=True))
     tipoEmpleado = db.relationship('TipoEmpleado', backref=db.backref('users', lazy=True))
+
+# Modelo de accesorios/autopartes en stock
+class Accesorio(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(50), unique=True, nullable=False)
+    lote = db.Column(db.String(50), nullable=False)
+    marca = db.Column(db.String(100), nullable=False)
+    nombre = db.Column(db.String(150), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    sucursal = db.Column(db.String(50), nullable=False)

@@ -1,8 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from models import db, User, Role, TipoEmpleado
-from werkzeug.security import check_password_hash
-from flask import session
-from werkzeug.security import generate_password_hash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+from models import db, User, Role, TipoEmpleado, Accesorio
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -11,7 +9,7 @@ app.config['SECRET_KEY'] = 'clave-secreta'  # Para mensajes flash y sesión
 
 db.init_app(app)
 
-# Crear tablas al iniciar
+# Inicialización y datos iniciales
 with app.app_context():
     db.create_all()
 
@@ -39,9 +37,20 @@ with app.app_context():
         ))
         db.session.commit()
 
-# ------------------- Rutas -------------------
+    # Accesorios de ejemplo
+    accesorios_ejemplo = [
+        {'codigo': 'A1001', 'lote': 'L2023', 'marca': 'DragonParts', 'nombre': 'Filtro de aire', 'cantidad': 30, 'sucursal': 'Sucursal Norte'},
+        {'codigo': 'A1002', 'lote': 'L2023', 'marca': 'TigerAuto', 'nombre': 'Bujía estándar', 'cantidad': 50, 'sucursal': 'Sucursal Sur'},
+        {'codigo': 'A1003', 'lote': 'L2024', 'marca': 'DragonParts', 'nombre': 'Pastilla de freno', 'cantidad': 40, 'sucursal': 'Sucursal Centro'},
+        {'codigo': 'A1004', 'lote': 'L2024', 'marca': 'TigerAuto', 'nombre': 'Aceite sintético', 'cantidad': 25, 'sucursal': 'Sucursal Norte'},
+        {'codigo': 'A1005', 'lote': 'L2025', 'marca': 'DragonParts', 'nombre': 'Filtro de gasolina', 'cantidad': 35, 'sucursal': 'Sucursal Sur'}
+    ]
+    for acc in accesorios_ejemplo:
+        if not Accesorio.query.filter_by(codigo=acc['codigo']).first():
+            db.session.add(Accesorio(**acc))
+    db.session.commit()
 
-# Decorador para restringir acceso solo al admin
+# Decoradores
 def solo_admin(f):
     from functools import wraps
     @wraps(f)
@@ -53,7 +62,26 @@ def solo_admin(f):
         return f(*args, **kwargs)
     return decorador
 
-# Ruta de login
+def acceso_por_tipo(tipo):
+    def decorador(f):
+        from functools import wraps
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            usuario = session.get('usuario')
+            if not usuario:
+                flash('Debes iniciar sesión.', 'danger')
+                return redirect(url_for('login'))
+            if usuario.get('role') == 'Administrador':
+                return f(*args, **kwargs)
+            user_obj = User.query.filter_by(id=usuario['id']).first()
+            if user_obj and user_obj.role.nombre == 'Empleado' and user_obj.tipoEmpleado.nombre == tipo:
+                return f(*args, **kwargs)
+            flash('Acceso restringido para este tipo de usuario.', 'danger')
+            return redirect(url_for('dashboard'))
+        return wrapper
+    return decorador
+
+# Rutas principales
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -69,7 +97,6 @@ def login():
             flash('Credenciales incorrectas', 'danger')
     return render_template('login.html')
 
-# Ruta de logout
 @app.route('/logout')
 def logout():
     session.pop('usuario', None)
@@ -81,13 +108,11 @@ def dashboard():
     usuario = session.get('usuario')
     return render_template('dashboard.html', usuario=usuario)
 
-
 @app.route('/usuarios')
 @solo_admin
 def listar_usuarios():
     usuarios = User.query.all()
     return render_template('usuarios.html', usuarios=usuarios)
-
 
 @app.route('/usuarios/crear', methods=['GET', 'POST'])
 @solo_admin
@@ -125,7 +150,6 @@ def crear_usuario():
 
     return render_template('crear_usuario.html', roles=roles, tipos=tipos, sucursales=sucursales)
 
-
 @app.route('/usuarios/<int:id>/editar', methods=['GET', 'POST'])
 @solo_admin
 def editar_usuario(id):
@@ -144,6 +168,39 @@ def editar_usuario(id):
 
     return render_template('editar_usuario.html', usuario=usuario, roles=roles, tipos=tipos)
 
+# Interfaces de usuario
+@app.route('/facturacion')
+@acceso_por_tipo('Cajero')
+def facturacion():
+    return render_template('facturacion.html')
+
+@app.route('/catalogo')
+@acceso_por_tipo('Vendedor')
+def catalogo():
+    return render_template('catalogo.html')
+
+@app.route('/stock')
+@acceso_por_tipo('Almacenero')
+def stock():
+    accesorios = Accesorio.query.all()
+    return render_template('stock.html', accesorios=accesorios)
+
+# Reportes para el administrador
+@app.route('/reportes')
+@solo_admin
+def reportes():
+    sucursal = request.args.get('sucursal', '')
+    marca = request.args.get('marca', '')
+    query = Accesorio.query
+    if sucursal:
+        query = query.filter_by(sucursal=sucursal)
+    if marca:
+        query = query.filter_by(marca=marca)
+    accesorios = query.all()
+    # Para los filtros
+    sucursales = [a.sucursal for a in Accesorio.query.distinct(Accesorio.sucursal).all()]
+    marcas = [a.marca for a in Accesorio.query.distinct(Accesorio.marca).all()]
+    return render_template('reportes.html', accesorios=accesorios, sucursales=sucursales, marcas=marcas)
 
 if __name__ == '__main__':
     app.run(debug=True)
